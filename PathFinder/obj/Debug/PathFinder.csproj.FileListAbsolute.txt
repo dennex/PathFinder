@@ -1,0 +1,1 @@
+c:\users\denis\documents\visual studio 2012\Projects\PathFinder\PathFinder\bin\Debug\PathFinder.exe.config
