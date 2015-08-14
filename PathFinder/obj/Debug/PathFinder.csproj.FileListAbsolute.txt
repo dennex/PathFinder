@@ -1,1 +1,10 @@
 c:\users\denis\documents\visual studio 2012\Projects\PathFinder\PathFinder\bin\Debug\PathFinder.exe.config
+C:\git\PathFinder\PathFinder\bin\Debug\PathFinder.exe.config
+C:\git\PathFinder\PathFinder\obj\Debug\PathFinder.csprojResolveAssemblyReference.cache
+C:\git\PathFinder\PathFinder\obj\Debug\PathFinder.Form1.resources
+C:\git\PathFinder\PathFinder\obj\Debug\PathFinder.Properties.Resources.resources
+C:\git\PathFinder\PathFinder\obj\Debug\PathFinder.csproj.GenerateResource.Cache
+C:\git\PathFinder\PathFinder\bin\Debug\PathFinder.exe
+C:\git\PathFinder\PathFinder\bin\Debug\PathFinder.pdb
+C:\git\PathFinder\PathFinder\obj\Debug\PathFinder.exe
+C:\git\PathFinder\PathFinder\obj\Debug\PathFinder.pdb
