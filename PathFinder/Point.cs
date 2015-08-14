@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace PathFinder
 {
-    enum Direction  {Horizontal,Vertical};
+    public enum Direction { Horizontal, Vertical };
+    public enum Origin { Left, Right, Top, Bottom, Undefined };
 
     public class Point
     {
@@ -24,10 +25,19 @@ namespace PathFinder
     {// a node is a point that has a concept of direction
         // the direction of a node is either horizontal or vertical
         public Direction direction;
+        public Origin origin;// variable which states where the path got into the node
 
-        public Node(double x, double y, Direction direction):base(x,y)
+        public Node(double x, double y, Direction direction,Origin origin):base(x,y)
         {
             this.direction = direction;
+            this.origin = origin;
+        }
+
+        public Node(double x, double y, Direction direction)
+            : base(x, y)
+        {
+            this.direction = direction;
+            this.origin = Origin.Undefined;
         }
 
         public static bool Identical(Node A, Node B)
