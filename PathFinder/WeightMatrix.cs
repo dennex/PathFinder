@@ -8,7 +8,13 @@ namespace PathFinder
 {
     class WeightMatrix
     {
-        public static double GetZeroCrossing(Point point1, Point point2)
+        /// <summary>
+        /// This function obtains the position where the 0 is between two weight nodes
+        /// </summary>
+        /// <param name="point1"></param>
+        /// <param name="point2"></param>
+        /// <returns></returns>
+        public static double GetZeroCrossingCoordinate(Point point1, Point point2)
         {// here point is (x1,y1) and (x2,y2), where y is the weight and x is the index
             // we will interpolate and find the point where we actually have the 0
 
@@ -28,8 +34,7 @@ namespace PathFinder
         }
 
         /// <summary>
-        /// The path must be continuous: weights can't abruptly go from negative to positive, it will go through 0
-        /// There might be several paths: we will go through the list and find all the paths
+        /// This function goes through the matrix and finds all the zeroes that are between the weight nodes. We loop through each weight node and look at the 4 neighbors to see if there is a sign change. If there is one, we interpolate for the actual position.
         /// </summary>
         /// <param name="weights"></param>
         /// <returns></returns>
@@ -54,7 +59,7 @@ namespace PathFinder
                         if ((i-1>=0) && weights[i - 1, j] < 0) // top neighbor
                         {
                             double interpolatedCoordinate =
-                                GetZeroCrossing(new Point(i - 1, weights[i - 1, j]),
+                                GetZeroCrossingCoordinate(new Point(i - 1, weights[i - 1, j]),
                                                 new Point(i, weights[i, j]));
                             nodes.Add(new Node(j, interpolatedCoordinate,Direction.Horizontal));
 
@@ -63,7 +68,7 @@ namespace PathFinder
                         if ((j-1>=0) && weights[i, j - 1] < 0) // left neighbor
                         {
                             double interpolatedCoordinate =
-                                GetZeroCrossing(new Point(j - 1, weights[i, j - 1]),
+                                GetZeroCrossingCoordinate(new Point(j - 1, weights[i, j - 1]),
                                                 new Point(j, weights[i, j]));
                             nodes.Add(new Node(interpolatedCoordinate, i,Direction.Vertical));
                         }
@@ -71,7 +76,7 @@ namespace PathFinder
                         if ((i+1<weights.GetLength(0)) && weights[i + 1, j] < 0) // bottom neighbor
                         {
                             double interpolatedCoordinate =
-                                GetZeroCrossing(new Point(i, weights[i, j]),
+                                GetZeroCrossingCoordinate(new Point(i, weights[i, j]),
                                                 new Point(i + 1, weights[i + 1, j]));
                             nodes.Add(new Node(j, interpolatedCoordinate,Direction.Horizontal));
                         }
@@ -79,7 +84,7 @@ namespace PathFinder
                         if (j+1<weights.GetLength(1) && weights[i, j + 1] < 0) // right neighbor
                         {
                             double interpolatedCoordinate =
-                                GetZeroCrossing(new Point(j, weights[i, j]),
+                                GetZeroCrossingCoordinate(new Point(j, weights[i, j]),
                                                 new Point(j + 1, weights[i, j + 1]));
                             nodes.Add(new Node(interpolatedCoordinate, i,Direction.Vertical));
                         }
@@ -123,7 +128,9 @@ namespace PathFinder
             Node startNode = originNode;
             Node endNode = originNode;
 
-            while(true)
+            // we put a limit of loops in case something goes wrong, then we don't get stuck in an infinite loop
+            // 2 x the number of nodes should be enough to walk back on a path in case of dead-ends
+            for (int i = 0;i<nodes.Count() *2;i++) 
             {
                 // first time, run with entry angle 0
                 endNode = SearchSegmentEnd(nodes, startNode, AngleExitToEntry(foundAngle),out foundAngle);
@@ -143,14 +150,25 @@ namespace PathFinder
             return segments;
         }
 
+        /// <summary>
+        /// This function converts an angle of exit to angle of entry, from one segment to another, which is just 180degrees added
+        /// </summary>
+        /// <param name="exitAngle"></param>
+        /// <returns></returns>
         public static int AngleExitToEntry(int exitAngle)
         {
             return (exitAngle + 180) % 360; // if a node is entered at angle 45degrees for example, the end node sees it as entry angle from 225degrees
         }
 
+        // angles we can look through
         static int[] Angles = { 0, 45, 90, 135, 180, 225, 270, 315 };
 
-        public static int getAngleIndex(Direction direction, int angle)
+        /// <summary>
+        /// this looks at the array of angles and finds the index in the array
+        /// </summary>
+        /// <param name="angle"></param>
+        /// <returns></returns>
+        public static int GetAngleIndex(int angle)
         {
             bool found = false;
             int index = -1;
@@ -162,7 +180,6 @@ namespace PathFinder
                     index = i;
                 }
             }
-           
 
             if (found == true)
             {
@@ -174,6 +191,16 @@ namespace PathFinder
             }
         }
 
+        /// <summary>
+        /// This searches through the list of nodes and sees if any of the nodes is in the segment between the weight nodes we are looking at
+        /// </summary>
+        /// <param name="nodes"></param>
+        /// <param name="startX"></param>
+        /// <param name="endX"></param>
+        /// <param name="startY"></param>
+        /// <param name="endY"></param>
+        /// <param name="foundIndex"></param>
+        /// <returns></returns>
         public static bool SearchNodes(List<Node> nodes, int startX, int endX, int startY, int endY, out int foundIndex)
         {
             foundIndex = -1;
@@ -194,6 +221,14 @@ namespace PathFinder
             return false;
         }
 
+        /// <summary>
+        /// This function looks through the intersections of a square between weight nodes. It searches clockwise from the angle of entrance from the last segment
+        /// </summary>
+        /// <param name="nodes"></param>
+        /// <param name="startNode"></param>
+        /// <param name="startAngle"></param>
+        /// <param name="foundAngle"></param>
+        /// <returns></returns>
         public static Node SearchSegmentEnd(List<Node> nodes, Node startNode, int startAngle, out int foundAngle)
         {
             // find the end of the segment which starts at "startNode" and had angle coming in "startAngle"
@@ -203,7 +238,7 @@ namespace PathFinder
             int i = 0;
 
             // by making this loop run by the number of times there are angles, we permit dead-ends for the segment to go back on itself
-            for (i = (getAngleIndex(startNode.direction, startAngle) + Angles.Count() - 1) % Angles.Count(); i <= Angles.Count() && found == false; i = (i + Angles.Count() - 1) % Angles.Count())
+            for (i = (GetAngleIndex(startAngle) + Angles.Count() - 1) % Angles.Count(); i <= Angles.Count() && found == false; i = (i + Angles.Count() - 1) % Angles.Count())
             {
                 int x = (int)startNode.x;
                 int ceilX = (int)Math.Ceiling(startNode.x);
